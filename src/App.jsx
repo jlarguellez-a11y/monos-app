@@ -25,8 +25,8 @@ function LoginForm({ onLogin }) {
   return (
     <div style={{ maxWidth: 360, margin: '80px auto', padding: 24 }}>
       <div style={{ textAlign: 'center', marginBottom: 32 }}>
-        <div style={{ fontSize: 40, marginBottom: 8 }}>🎀</div>
-        <h1 style={{ fontSize: 20, fontWeight: 500, margin: 0 }}>Sistema de producción</h1>
+        <img src={require('./logo.png')} alt="Logo empresa" style={{ height: 80, marginBottom: 8 }} />
+         <h1 style={{ fontSize: 20, fontWeight: 500, margin: 0 }}>Sistema de producción</h1>
         <p style={{ color: '#888', fontSize: 14, margin: '4px 0 0' }}>Moños policía Colombia</p>
       </div>
       <form onSubmit={handleLogin}>
@@ -115,7 +115,7 @@ export default function App() {
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         background: '#fff'
       }}>
-        <span style={{ fontSize: 15, fontWeight: 500 }}>🎀 Moños policía</span>
+        <img src={require('./logo.png')} alt="Logo" style={{ height: 28 }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <span style={{ fontSize: 12, color: '#888' }}>{usuario.nombre}</span>
           <button
