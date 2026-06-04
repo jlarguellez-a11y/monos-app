@@ -8,7 +8,7 @@ import {
   getPedidosActivos,
   registrarProduccion,
   cambiarEstadoPedido,
-  getUsuarioActual
+  //getUsuarioActual
 } from '../supabaseClient'
 
 // Colores de estado
