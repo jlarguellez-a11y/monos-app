@@ -1,10 +1,10 @@
-// src/pages/VistaLider.jsx — VERSIÓN ACTUALIZADA con botón Nuevo Pedido
+// src/pages/VistaLider.jsx — VERSION 2 con gestión de productos
 import { useState, useEffect } from 'react'
 import { supabase, getPedidos, cambiarEstadoPedido } from '../supabaseClient'
 import CrearPedido from './CrearPedido'
+import GestionProductos from './GestionProductos'
 
 const ESTADOS = ['todos', 'pendiente', 'en_proceso', 'culminado', 'listo_enviar', 'enviado', 'cancelado']
-
 const ESTADO_CONFIG = {
   pendiente:    { label: 'Pendiente',      bg: '#FAEEDA', color: '#633806' },
   en_proceso:   { label: 'En proceso',     bg: '#E6F1FB', color: '#0C447C' },
@@ -17,7 +17,7 @@ const ESTADO_CONFIG = {
 function BarraProgreso({ pct }) {
   return (
     <div style={{ background: '#f0efea', borderRadius: 4, height: 6, flex: 1 }}>
-      <div style={{ background: pct === 100 ? '#639922' : '#378ADD', borderRadius: 4, height: 6, width: `${Math.min(100, pct)}%`, transition: 'width .4s' }} />
+      <div style={{ background: pct >= 100 ? '#639922' : '#378ADD', borderRadius: 4, height: 6, width: `${Math.min(100, pct)}%`, transition: 'width .4s' }} />
     </div>
   )
 }
@@ -37,10 +37,9 @@ function TarjetaPedidoLider({ pedido, onActualizar }) {
   const siguientesEstados = {
     pendiente:    ['en_proceso', 'cancelado'],
     en_proceso:   ['culminado', 'cancelado'],
-    culminado:    ['listo_enviar'],
+    culminado:    ['listo_enviar', 'cancelado'],
     listo_enviar: ['enviado'],
-    enviado:      [],
-    cancelado:    [],
+    enviado: [], cancelado: [],
   }[pedido.estado] || []
 
   return (
@@ -51,21 +50,16 @@ function TarjetaPedidoLider({ pedido, onActualizar }) {
           <span style={{ fontSize: 13, color: '#888', marginLeft: 8 }}>{pedido.cliente_nombre} · {pedido.cliente_entidad}</span>
           {pedido.cliente_ciudad && <span style={{ fontSize: 12, color: '#aaa', marginLeft: 6 }}>{pedido.cliente_ciudad}</span>}
         </div>
-        <span style={{ fontSize: 11, fontWeight: 500, padding: '3px 10px', borderRadius: 20, background: cfg.bg, color: cfg.color, whiteSpace: 'nowrap' }}>
-          {cfg.label}
-        </span>
+        <span style={{ fontSize: 11, fontWeight: 500, padding: '3px 10px', borderRadius: 20, background: cfg.bg, color: cfg.color, whiteSpace: 'nowrap' }}>{cfg.label}</span>
       </div>
-
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
         <BarraProgreso pct={pct} />
-        <span style={{ fontSize: 13, fontWeight: 500, color: pct === 100 ? '#27500A' : '#0C447C', minWidth: 36, textAlign: 'right' }}>{pct}%</span>
+        <span style={{ fontSize: 13, fontWeight: 500, color: pct >= 100 ? '#27500A' : '#0C447C', minWidth: 36, textAlign: 'right' }}>{pct}%</span>
       </div>
-
       <div style={{ fontSize: 12, color: '#888', marginBottom: 10 }}>
         {pedido.total_terminadas} de {pedido.total_unidades} unidades terminadas
         {pedido.fecha_entrega && <span style={{ marginLeft: 12 }}>· Entrega: {new Date(pedido.fecha_entrega).toLocaleDateString('es-CO')}</span>}
       </div>
-
       {siguientesEstados.length > 0 && (
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {siguientesEstados.map(est => {
@@ -88,7 +82,7 @@ export default function VistaLider({ usuario }) {
   const [filtro, setFiltro] = useState('todos')
   const [loading, setLoading] = useState(true)
   const [ultimaActualizacion, setUltimaActualizacion] = useState(null)
-  const [vistaActual, setVistaActual] = useState('lista') // 'lista' o 'crear'
+  const [vista, setVista] = useState('lista') // 'lista' | 'crear' | 'productos'
 
   async function cargarPedidos() {
     try {
@@ -101,23 +95,15 @@ export default function VistaLider({ usuario }) {
 
   useEffect(() => {
     cargarPedidos()
-    const channel = supabase.channel('lider-realtime')
+    const channel = supabase.channel('lider-v2')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' }, cargarPedidos)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'pedido_items' }, cargarPedidos)
       .subscribe()
     return () => supabase.removeChannel(channel)
   }, [])
 
-  // Mostrar formulario de crear pedido
-  if (vistaActual === 'crear') {
-    return (
-      <CrearPedido
-        usuario={usuario}
-        onVolver={() => setVistaActual('lista')}
-        onPedidoCreado={() => { cargarPedidos(); setVistaActual('lista') }}
-      />
-    )
-  }
+  if (vista === 'crear') return <CrearPedido usuario={usuario} onVolver={() => setVista('lista')} onPedidoCreado={() => { cargarPedidos(); setVista('lista') }} />
+  if (vista === 'productos') return <GestionProductos onVolver={() => setVista('lista')} />
 
   const pedidosFiltrados = filtro === 'todos' ? pedidos : pedidos.filter(p => p.estado === filtro)
   const totalActivos = pedidos.filter(p => p.estado === 'en_proceso').length
@@ -127,34 +113,30 @@ export default function VistaLider({ usuario }) {
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: '0 16px 32px' }}>
 
-      {/* Encabezado con botón Nuevo pedido */}
+      {/* Encabezado */}
       <div style={{ padding: '16px 0 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <div style={{ fontSize: 18, fontWeight: 500 }}>Panel de pedidos</div>
-          {ultimaActualizacion && (
-            <div style={{ fontSize: 11, color: '#aaa' }}>
-              Actualizado: {ultimaActualizacion.toLocaleTimeString('es-CO')} · en tiempo real
-            </div>
-          )}
+          {ultimaActualizacion && <div style={{ fontSize: 11, color: '#aaa' }}>Actualizado: {ultimaActualizacion.toLocaleTimeString('es-CO')} · en tiempo real</div>}
         </div>
-        <button
-          onClick={() => setVistaActual('crear')}
-          style={{
-            padding: '8px 16px', borderRadius: 10, border: 'none',
-            background: '#378ADD', color: '#fff', fontSize: 13,
-            fontWeight: 500, cursor: 'pointer'
-          }}
-        >
-          + Nuevo pedido
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => setVista('productos')}
+            style={{ padding: '8px 14px', borderRadius: 10, border: '0.5px solid #ddd', background: '#fff', color: '#555', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+            🗂 Productos
+          </button>
+          <button onClick={() => setVista('crear')}
+            style={{ padding: '8px 14px', borderRadius: 10, border: 'none', background: '#378ADD', color: '#fff', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+            + Nuevo pedido
+          </button>
+        </div>
       </div>
 
       {/* Métricas */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 16 }}>
         {[
-          { label: 'En producción',     value: totalActivos,    bg: '#E6F1FB', color: '#0C447C' },
-          { label: 'Listos para enviar', value: totalListos,    bg: '#EEEDFE', color: '#3C3489' },
-          { label: 'Pendientes',         value: totalPendientes, bg: '#FAEEDA', color: '#633806' },
+          { label: 'En producción',      value: totalActivos,     bg: '#E6F1FB', color: '#0C447C' },
+          { label: 'Listos para enviar', value: totalListos,      bg: '#EEEDFE', color: '#3C3489' },
+          { label: 'Pendientes',         value: totalPendientes,  bg: '#FAEEDA', color: '#633806' },
         ].map(m => (
           <div key={m.label} style={{ background: m.bg, borderRadius: 10, padding: '12px 14px', textAlign: 'center' }}>
             <div style={{ fontSize: 24, fontWeight: 500, color: m.color }}>{m.value}</div>
@@ -178,7 +160,7 @@ export default function VistaLider({ usuario }) {
         })}
       </div>
 
-      {/* Lista de pedidos */}
+      {/* Lista */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: 40, color: '#888' }}>Cargando...</div>
       ) : pedidosFiltrados.length === 0 ? (
@@ -186,9 +168,7 @@ export default function VistaLider({ usuario }) {
           No hay pedidos con este estado
         </div>
       ) : (
-        pedidosFiltrados.map(p => (
-          <TarjetaPedidoLider key={p.id} pedido={p} onActualizar={cargarPedidos} />
-        ))
+        pedidosFiltrados.map(p => <TarjetaPedidoLider key={p.id} pedido={p} onActualizar={cargarPedidos} />)
       )}
     </div>
   )
