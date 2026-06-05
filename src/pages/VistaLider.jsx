@@ -24,14 +24,18 @@ function BarraProgreso({ pct }) {
 
 function TarjetaPedidoLider({ pedido, onActualizar }) {
   const [cambiandoEstado, setCambiandoEstado] = useState(false)
+  const [expandido, setExpandido]             = useState(false)
+  const [comentarios, setComentarios]         = useState([])
   const cfg = ESTADO_CONFIG[pedido.estado] || {}
   const pct = Number(pedido.porcentaje_avance) || 0
-
-  async function cambiarEstado(nuevoEstado) {
-    setCambiandoEstado(true)
-    await cambiarEstadoPedido(pedido.id, nuevoEstado)
-    setCambiandoEstado(false)
-    onActualizar()
+ 
+  async function cargarComentarios() {
+    const { data } = await supabase
+      .from('comentarios_pedido')
+      .select('*, usuarios(nombre)')
+      .eq('pedido_id', pedido.id)
+      .order('created_at', { ascending: false })
+    setComentarios(data || [])
   }
 
   const siguientesEstados = {
