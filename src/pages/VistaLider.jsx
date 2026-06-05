@@ -37,6 +37,15 @@ function TarjetaPedidoLider({ pedido, onActualizar }) {
       .order('created_at', { ascending: false })
     setComentarios(data || [])
   }
+ 
+  useEffect(() => { if (expandido) cargarComentarios() }, [expandido])
+ 
+  async function cambiarEstado(nuevoEstado) {
+    setCambiandoEstado(true)
+    await cambiarEstadoPedido(pedido.id, nuevoEstado)
+    setCambiandoEstado(false)
+    onActualizar()
+  }
 
   const siguientesEstados = {
     pendiente:    ['en_proceso', 'cancelado'],
