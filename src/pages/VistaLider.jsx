@@ -1,8 +1,9 @@
-// src/pages/VistaLider.jsx — FINAL
+// src/pages/VistaLider.jsx — CON CONTABILIDAD
 import { useState, useEffect } from 'react'
 import { supabase, getPedidos, cambiarEstadoPedido } from '../supabaseClient'
 import CrearPedido from './CrearPedido'
 import GestionProductos from './GestionProductos'
+import Contabilidad from './Contabilidad'
 
 const ESTADOS = ['todos', 'pendiente', 'en_proceso', 'culminado', 'listo_enviar', 'enviado', 'cancelado']
 const ESTADO_CONFIG = {
@@ -50,8 +51,6 @@ function TarjetaPedidoLider({ pedido, onActualizar }) {
 
   return (
     <div style={{ background: '#fff', border: '0.5px solid #e0e0db', borderRadius: 12, marginBottom: 10, overflow: 'hidden' }}>
-
-      {/* Cuerpo principal */}
       <div style={{ padding: '14px 16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
           <div>
@@ -63,20 +62,16 @@ function TarjetaPedidoLider({ pedido, onActualizar }) {
             {cfg.label}
           </span>
         </div>
-
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
           <div style={{ flex: 1, background: '#f0efea', borderRadius: 4, height: 6 }}>
             <div style={{ background: pct >= 100 ? '#639922' : '#378ADD', borderRadius: 4, height: 6, width: `${Math.min(100, pct)}%`, transition: 'width .4s' }} />
           </div>
           <span style={{ fontSize: 13, fontWeight: 500, color: pct >= 100 ? '#27500A' : '#0C447C', minWidth: 36, textAlign: 'right' }}>{pct}%</span>
         </div>
-
         <div style={{ fontSize: 12, color: '#888', marginBottom: 10 }}>
           {pedido.total_terminadas} de {pedido.total_unidades} unidades
           {pedido.fecha_entrega && <span style={{ marginLeft: 10 }}>· Entrega: {new Date(pedido.fecha_entrega).toLocaleDateString('es-CO')}</span>}
         </div>
-
-        {/* Botones cambio de estado */}
         {siguientesEstados.length > 0 && (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
             {siguientesEstados.map(est => {
@@ -90,35 +85,26 @@ function TarjetaPedidoLider({ pedido, onActualizar }) {
             })}
           </div>
         )}
-
-        {/* Botón comentarios */}
-        <button
-          onClick={() => setVerComentarios(!verComentarios)}
+        <button onClick={() => setVerComentarios(!verComentarios)}
           style={{ background: 'none', border: '0.5px solid #ddd', borderRadius: 8, padding: '5px 12px', fontSize: 12, color: '#666', cursor: 'pointer' }}>
           💬 {verComentarios ? 'Ocultar comentarios' : 'Ver comentarios'}
         </button>
       </div>
-
-      {/* Panel de comentarios */}
       {verComentarios && (
         <div style={{ borderTop: '0.5px solid #ececec', padding: '12px 16px', background: '#fafaf8' }}>
           {comentarios.length === 0 ? (
-            <div style={{ fontSize: 12, color: '#bbb', textAlign: 'center', padding: '10px 0' }}>
-              Sin comentarios en este pedido
-            </div>
-          ) : (
-            comentarios.map(c => (
-              <div key={c.id} style={{ background: '#fff', borderRadius: 8, padding: '8px 10px', marginBottom: 8, border: '0.5px solid #ececec' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: 11, fontWeight: 500, color: '#378ADD' }}>{c.usuarios?.nombre}</span>
-                  <span style={{ fontSize: 10, color: '#bbb' }}>
-                    {new Date(c.created_at).toLocaleString('es-CO', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
-                <div style={{ fontSize: 13, color: '#333' }}>{c.texto}</div>
+            <div style={{ fontSize: 12, color: '#bbb', textAlign: 'center', padding: '10px 0' }}>Sin comentarios</div>
+          ) : comentarios.map(c => (
+            <div key={c.id} style={{ background: '#fff', borderRadius: 8, padding: '8px 10px', marginBottom: 8, border: '0.5px solid #ececec' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                <span style={{ fontSize: 11, fontWeight: 500, color: '#378ADD' }}>{c.usuarios?.nombre}</span>
+                <span style={{ fontSize: 10, color: '#bbb' }}>
+                  {new Date(c.created_at).toLocaleString('es-CO', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                </span>
               </div>
-            ))
-          )}
+              <div style={{ fontSize: 13, color: '#333' }}>{c.texto}</div>
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -130,7 +116,7 @@ export default function VistaLider({ usuario }) {
   const [filtro, setFiltro]   = useState('todos')
   const [loading, setLoading] = useState(true)
   const [ultimaActualizacion, setUltimaActualizacion] = useState(null)
-  const [vista, setVista] = useState('lista')
+  const [vista, setVista]     = useState('lista')
 
   async function cargarPedidos() {
     try {
@@ -150,13 +136,14 @@ export default function VistaLider({ usuario }) {
     return () => supabase.removeChannel(channel)
   }, [])
 
-  if (vista === 'crear')    return <CrearPedido usuario={usuario} onVolver={() => setVista('lista')} onPedidoCreado={() => { cargarPedidos(); setVista('lista') }} />
-  if (vista === 'productos') return <GestionProductos onVolver={() => setVista('lista')} />
+  if (vista === 'crear')        return <CrearPedido usuario={usuario} onVolver={() => setVista('lista')} onPedidoCreado={() => { cargarPedidos(); setVista('lista') }} />
+  if (vista === 'productos')    return <GestionProductos onVolver={() => setVista('lista')} />
+  if (vista === 'contabilidad') return <Contabilidad onVolver={() => setVista('lista')} usuario={usuario} />
 
-  const pedidosFiltrados  = filtro === 'todos' ? pedidos : pedidos.filter(p => p.estado === filtro)
-  const totalActivos      = pedidos.filter(p => p.estado === 'en_proceso').length
-  const totalListos       = pedidos.filter(p => p.estado === 'listo_enviar').length
-  const totalPendientes   = pedidos.filter(p => p.estado === 'pendiente').length
+  const pedidosFiltrados = filtro === 'todos' ? pedidos : pedidos.filter(p => p.estado === filtro)
+  const totalActivos     = pedidos.filter(p => p.estado === 'en_proceso').length
+  const totalListos      = pedidos.filter(p => p.estado === 'listo_enviar').length
+  const totalPendientes  = pedidos.filter(p => p.estado === 'pendiente').length
 
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: '0 16px 32px' }}>
@@ -166,7 +153,11 @@ export default function VistaLider({ usuario }) {
           <div style={{ fontSize: 18, fontWeight: 500 }}>Panel de pedidos</div>
           {ultimaActualizacion && <div style={{ fontSize: 11, color: '#aaa' }}>Actualizado: {ultimaActualizacion.toLocaleTimeString('es-CO')} · en tiempo real</div>}
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <button onClick={() => setVista('contabilidad')}
+            style={{ padding: '8px 14px', borderRadius: 10, border: '0.5px solid #ddd', background: '#fff', color: '#555', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+            📊 Contabilidad
+          </button>
           <button onClick={() => setVista('productos')}
             style={{ padding: '8px 14px', borderRadius: 10, border: '0.5px solid #ddd', background: '#fff', color: '#555', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
             Productos
