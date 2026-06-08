@@ -224,7 +224,7 @@ function TarjetaIngreso({ ingreso, onActualizar, usuario }) {
               onClick={async () => {
               if (!window.confirm('¿Eliminar este ingreso? Esta acción no se puede deshacer.')) return
               await supabase.from('ingresos').delete().eq('id', ingreso.id)
-              o nActualizar()
+              onActualizar()
               }}
               style={{ fontSize: 12, padding: '5px 12px', borderRadius: 8, border: '0.5px solid #FCEBEB', background: '#FCEBEB', color: '#791F1F', cursor: 'pointer' }}>
               🗑 Eliminar ingreso
