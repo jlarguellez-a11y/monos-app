@@ -85,10 +85,21 @@ function TarjetaPedidoLider({ pedido, onActualizar }) {
             })}
           </div>
         )}
-        <button onClick={() => setVerComentarios(!verComentarios)}
-          style={{ background: 'none', border: '0.5px solid #ddd', borderRadius: 8, padding: '5px 12px', fontSize: 12, color: '#666', cursor: 'pointer' }}>
-          💬 {verComentarios ? 'Ocultar comentarios' : 'Ver comentarios'}
-        </button>
+        <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
+          <button onClick={() => setVerComentarios(!verComentarios)}
+            style={{ background: 'none', border: '0.5px solid #ddd', borderRadius: 8, padding: '5px 12px', fontSize: 12, color: '#666', cursor: 'pointer' }}>
+            💬 {verComentarios ? 'Ocultar comentarios' : 'Ver comentarios'}
+          </button>
+          <button
+            onClick={async () => {
+              if (!window.confirm(`¿Eliminar el pedido ${pedido.codigo}? Se eliminará también su ingreso asociado.`)) return
+              await supabase.from('pedidos').delete().eq('id', pedido.id)
+              onActualizar()
+            }}
+            style={{ background: 'none', border: '0.5px solid #FCEBEB', borderRadius: 8, padding: '5px 12px', fontSize: 12, color: '#791F1F', cursor: 'pointer' }}>
+            🗑 Eliminar
+          </button>
+        </div>
       </div>
       {verComentarios && (
         <div style={{ borderTop: '0.5px solid #ececec', padding: '12px 16px', background: '#fafaf8' }}>

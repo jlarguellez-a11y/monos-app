@@ -219,6 +219,17 @@ function TarjetaIngreso({ ingreso, onActualizar, usuario }) {
                 style={{ fontSize: 12, padding: '5px 12px', borderRadius: 8, border: '0.5px solid #ddd', background: '#fff', color: '#633806', cursor: 'pointer' }}>
                 🏷️ {ingreso.descuento_pct > 0 ? `Descuento: ${ingreso.descuento_pct}%` : 'Agregar descuento'}
               </button>
+              {ingreso.estado !== 'pagado' && ingreso.estado !== 'cancelado' && (
+              <button
+              onClick={async () => {
+              if (!window.confirm('¿Eliminar este ingreso? Esta acción no se puede deshacer.')) return
+              await supabase.from('ingresos').delete().eq('id', ingreso.id)
+              o nActualizar()
+              }}
+              style={{ fontSize: 12, padding: '5px 12px', borderRadius: 8, border: '0.5px solid #FCEBEB', background: '#FCEBEB', color: '#791F1F', cursor: 'pointer' }}>
+              🗑 Eliminar ingreso
+              </button>
+              )}
             </div>
           )}
 
@@ -519,7 +530,18 @@ export default function Contabilidad({ onVolver, usuario }) {
                       {tc?.label} · {new Date(e.fecha).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </div>
                   </div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: '#791F1F' }}>{formatCOP(e.monto)}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: '#791F1F' }}>{formatCOP(e.monto)}</div>
+                    <button
+                      onClick={async () => {
+                        if (!window.confirm('¿Eliminar este egreso?')) return
+                        await supabase.from('egresos').delete().eq('id', e.id)
+                        cargarDatos()
+                      }}
+                      style={{ padding: '4px 10px', borderRadius: 8, border: '0.5px solid #FCEBEB', background: '#FCEBEB', color: '#791F1F', fontSize: 12, cursor: 'pointer', flexShrink: 0 }}>
+                      🗑
+                    </button>
+                  </div>
                 </div>
               )
             })
