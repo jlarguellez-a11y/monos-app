@@ -282,6 +282,15 @@ export default function GestionProductos({ onVolver }) {
                       style={{ padding: '5px 11px', borderRadius: 8, border: '0.5px solid #ddd', background: p.activo ? '#FCEBEB' : '#EAF3DE', color: p.activo ? '#791F1F' : '#27500A', fontSize: 12, cursor: 'pointer' }}>
                       {p.activo ? 'Desactivar' : 'Activar'}
                     </button>
+                    <button
+                      onClick={async () => {
+                        if (!window.confirm(`¿Eliminar "${p.nombre}"? Esta acción no se puede deshacer.`)) return
+                        await supabase.from('productos').delete().eq('id', p.id)
+                        cargarProductos()
+                      }}
+                      style={{ padding: '5px 11px', borderRadius: 8, border: '0.5px solid #FCEBEB', background: '#FCEBEB', color: '#791F1F', fontSize: 12, cursor: 'pointer' }}>
+                      🗑
+                    </button>
                   </div>
                 </div>
               </div>
