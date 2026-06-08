@@ -15,6 +15,7 @@ const ESTADO_INGRESO = {
   pendiente: { label: 'Pendiente', bg: '#FAEEDA', color: '#633806' },
   abonado:   { label: 'Abonado',   bg: '#E6F1FB', color: '#0C447C' },
   pagado:    { label: 'Pagado',    bg: '#EAF3DE', color: '#27500A' },
+  cancelado: { label: 'Cancelado', bg: '#FCEBEB', color: '#791F1F' },
 }
 
 function formatCOP(n) {
@@ -302,7 +303,7 @@ export default function Contabilidad({ onVolver, usuario }) {
       {tab === 'ingresos' && (
         <div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
-            {['todos', 'pendiente', 'abonado', 'pagado'].map(est => {
+            {['todos', 'pendiente', 'abonado', 'pagado', 'cancelado'].map(est => {
               const activo = filtroEstado === est
               const cfg    = ESTADO_INGRESO[est]
               return (
