@@ -454,6 +454,37 @@ export default function Contabilidad({ onVolver, usuario }) {
 
           {loading ? (
             <div style={{ textAlign: 'center', padding: 30, color: '#888' }}>Cargando...</div>
+          ) : filtroEstado === 'cancelado' ? (
+            ingresos.filter(i => i.estado === 'cancelado').length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '30px 20px', color: '#888', background: '#f5f5f3', borderRadius: 12 }}>
+                No hay ingresos cancelados
+              </div>
+            ) : (
+              ingresos.filter(i => i.estado === 'cancelado').map(i => (
+                <div key={i.id} style={{ background: '#fff', border: '0.5px solid #e0e0db', borderRadius: 10, padding: '11px 14px', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: '#999' }}>{i.descripcion}</div>
+                    <div style={{ fontSize: 11, color: '#bbb', marginTop: 2 }}>
+                      Cancelado · {new Date(i.created_at).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: '#bbb', textDecoration: 'line-through' }}>
+                      {formatCOP(i.monto_total)}
+                    </span>
+                    <button
+                      onClick={async () => {
+                        if (!window.confirm('¿Eliminar este ingreso cancelado?')) return
+                        await supabase.from('ingresos').delete().eq('id', i.id)
+                        cargarDatos()
+                      }}
+                      style={{ padding: '4px 10px', borderRadius: 8, border: '0.5px solid #FCEBEB', background: '#FCEBEB', color: '#791F1F', fontSize: 12, cursor: 'pointer' }}>
+                      🗑 Eliminar
+                    </button>
+                  </div>
+                </div>
+              ))
+            )
           ) : ingresosFiltrados.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '30px 20px', color: '#888', background: '#f5f5f3', borderRadius: 12 }}>
               No hay ingresos registrados
