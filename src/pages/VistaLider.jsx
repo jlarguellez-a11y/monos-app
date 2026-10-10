@@ -4,6 +4,7 @@ import { supabase, getPedidos, cambiarEstadoPedido } from '../supabaseClient'
 import CrearPedido from './CrearPedido'
 import GestionProductos from './GestionProductos'
 import Contabilidad from './Contabilidad'
+import Facturas from './Facturas'
 
 const ESTADOS = ['todos', 'pendiente', 'en_proceso', 'culminado', 'listo_enviar', 'enviado', 'cancelado']
 const ESTADO_CONFIG = {
@@ -150,6 +151,7 @@ export default function VistaLider({ usuario }) {
   if (vista === 'crear')        return <CrearPedido usuario={usuario} onVolver={() => setVista('lista')} onPedidoCreado={() => { cargarPedidos(); setVista('lista') }} />
   if (vista === 'productos')    return <GestionProductos onVolver={() => setVista('lista')} />
   if (vista === 'contabilidad') return <Contabilidad onVolver={() => setVista('lista')} usuario={usuario} />
+  if (vista === 'facturas') return <Facturas onVolver={() => setVista('lista')} usuario={usuario} />
 
   const pedidosFiltrados = filtro === 'todos' ? pedidos : pedidos.filter(p => p.estado === filtro)
   const totalActivos     = pedidos.filter(p => p.estado === 'en_proceso').length
@@ -176,6 +178,10 @@ export default function VistaLider({ usuario }) {
           <button onClick={() => setVista('crear')}
             style={{ padding: '8px 14px', borderRadius: 10, border: 'none', background: '#378ADD', color: '#fff', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
             + Nuevo pedido
+          </button>
+          <button onClick={() => setVista('facturas')}
+            style={{ padding: '8px 14px', borderRadius: 10, border: '0.5px solid #ddd', background: '#fff', color: '#555', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+          Facturas
           </button>
         </div>
       </div>
